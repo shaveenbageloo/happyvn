@@ -10,12 +10,6 @@ app.get("/", (req, res) => {
   console.log("Returned 200 OKAY message");
 });
 
-// app.get("*", (req, res, next) => {
-//   setImmediate(() => {
-//     next(new Error("Something went wrong here!"));
-//   });
-// });
-
 app.listen(8080, () => {
   console.log("Application started!");
 });
