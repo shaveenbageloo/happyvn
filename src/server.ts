@@ -1,13 +1,9 @@
 import express from "express";
+import { createExpressServer } from "routing-controllers";
+import { UserController } from "../controllers/UserController";
 
-const app = express();
-
-app.get("/", (req, res) => {
-  const dt = Date();
-  res
-    .status(200)
-    .send("Server listening for your input </br> " + dt.toString());
-  console.log("Returned 200 OKAY message");
+const app = createExpressServer({
+  controllers: [UserController],
 });
 
 app.listen(8080, () => {
