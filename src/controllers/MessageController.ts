@@ -17,7 +17,7 @@ const fs = require("fs");
 export class MessageController {
   @Post("/message")
   async post(@Body() message: Message) {
-    console.log("Posted the body here.");
+    console.log("POST method has executed.");
     return null;
   }
 
