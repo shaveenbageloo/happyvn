@@ -1,9 +1,8 @@
-import express from "express";
 import { createExpressServer } from "routing-controllers";
-import { UserController } from "../controllers/UserController";
+import { MessageController } from "./controllers/MessageController";
 
 const app = createExpressServer({
-  controllers: [UserController],
+  controllers: [MessageController],
 });
 
 app.listen(8080, () => {

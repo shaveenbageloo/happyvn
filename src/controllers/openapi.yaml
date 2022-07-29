@@ -1,0 +1,34 @@
+openapi: 3.0.1
+info:
+  title: Happyvn App
+  description: 'This is an app for Happyvn'
+  contact:
+    email: shaveenbageloo@gmail.com
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Happyvn
+  url: https://www.linkedin.com/in/shaveenbageloo/
+servers:
+- url: http://localhost:8080
+- url: http://localhost:8082
+paths:
+  /message:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                destination:
+                  type: string
+                  description: The message destination
+                  example: operations-channel
+                text:
+                  type: string
+                  example: An important event has occured
+                timestamp:
+                  type: string
+                  format: date-time
+      responses:
+        200:
+          description: Successful response
