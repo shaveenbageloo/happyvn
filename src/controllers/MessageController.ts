@@ -3,21 +3,71 @@ import "reflect-metadata";
 import { validate, ValidationError } from "class-validator";
 import { Message } from "../models/message";
 
-const { OpenApiValidator } =
-  require("express-openapi-validate").OpenApiValidator;
-const jsYaml = require("js-yaml");
-const fs = require("fs");
+// const { OpenApiValidator } =
+//   require("express-openapi-validate").OpenApiValidator;
+// const jsYaml = require("js-yaml");
+// const fs = require("fs");
 // const openApiDocument = jsYaml.safeLoad(
 //   fs.readFileSync("openapi.yaml", "utf-8")
 // );
 
-// let batches = [];
+const sendBatch = {
+  batches: [
+    {
+      destination: "",
+      messages: [
+        {
+          text: "",
+          timestamp: "",
+        },
+      ],
+    },
+  ],
+};
+
+const destinationMessage = {
+  destination: "",
+  messages: [{ text: "", timestamp: "" }],
+};
 
 @JsonController()
 export class MessageController {
   @Post("/message")
   async post(@Body() message: Message) {
-    console.log("POST method has executed.");
+    const JSONMessage = JSON.parse(JSON.stringify(message));
+    // destinationMessage.destination = JSONMessage.destination;
+    // destinationMessage.messages[0].text = JSONMessage.text;
+    // destinationMessage.messages[0].timestamp = JSONMessage.timestamp;
+    // sendBatch.batches.push(destinationMessage);
+    const messages = {
+      text: JSONMessage.text,
+      timeStamp: JSONMessage.timestamp,
+    };
+
+    let destinationExists = false;
+
+    sendBatch.batches.forEach((batch) => {
+      if (batch.destination === JSONMessage.destination) {
+        destinationExists = true;
+        batch.messages.push({
+          text: JSONMessage.text,
+          timestamp: JSONMessage.timestamp,
+        });
+      }
+    });
+
+    if (!destinationExists) {
+      sendBatch.batches.push({
+        destination: JSONMessage.destination,
+        messages: [
+          {
+            text: JSONMessage.text,
+            timestamp: JSONMessage.timestamp,
+          },
+        ],
+      });
+    }
+
     return null;
   }
 
@@ -26,13 +76,14 @@ export class MessageController {
     return "This action returns this string!";
   }
 
-  // @Get("/users/:id")
-  // getOne(@Param("id") id: number) {
-  //   return "This action returns all users";
-  // }
+  @Get("/returnBatches")
+  async GetBatchArray() {
+    //return "GetBatches Return";
+    return sendBatch;
+  }
 
-  // @Post("/users")
-  // post(@Body() userBody: string) {
-  //   return "This action returns all users";
-  // }
+  @Get("/batchCount")
+  async BatchCount() {
+    return sendBatch.batches.length;
+  }
 }
