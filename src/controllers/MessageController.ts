@@ -3,21 +3,9 @@ import "reflect-metadata";
 import { validate, ValidationError } from "class-validator";
 import { Message } from "../models/message";
 
-const MOMENT = require("moment");
+import MOMENT from "moment";
 
 const batchTimeout = process.env.BATCH_TIMEOUT || 10;
-
-const TimeDiff = (startTime: any, endTime: any, format: any) => {
-  startTime = MOMENT(startTime, "YYYY-MM-DD HH:mm:ss");
-  endTime = MOMENT(endTime, "YYYY-MM-DD HH:mm:ss");
-  return endTime.diff(startTime, format);
-};
-
-let startTime = new Date();
-let endTime = new Date();
-
-// let startTime = new Date("2013-5-11 8:37:18");
-// let endTime = new Date("2013-5-11 10:37:18");
 
 // const { OpenApiValidator } =
 //   require("express-openapi-validate").OpenApiValidator;
@@ -27,11 +15,7 @@ let endTime = new Date();
 //   fs.readFileSync("openapi.yaml", "utf-8")
 // );
 
-const sendBatch = {
-  batches: [],
-};
-
-const messagesArray = [];
+const messagesArray: Message[] = [];
 
 @JsonController()
 export class MessageController {
@@ -44,29 +28,24 @@ export class MessageController {
   post(@Body() message: Message) {
     const JSONMessage = JSON.parse(JSON.stringify(message));
 
-    const messages = {
-      destination: JSONMessage.destination,
-      messages: [
-        {
-          text: JSONMessage.text,
-          timeStamp: JSONMessage.timestamp,
-        },
-      ],
-    };
+    // const messages = {
+    //   destination: JSONMessage.destination,
+    //   messages: [
+    //     {
+    //       text: JSONMessage.text,
+    //       timeStamp: JSONMessage.timestamp,
+    //     },
+    //   ],
+    // };
 
-    if ((messagesArray.length = 0)) {
-      startTime = new Date();
-    }
-
-    messagesArray.push(messages);
-    endTime = new Date();
-
-    const timeDifference = TimeDiff(startTime, endTime, "seconds");
-    if (timeDifference >= parseInt(batchTimeout.toString())) {
-      console.log("BATCH send all messages to API Endpoint");
-      startTime = new Date();
-      this.CreateBatch();
-    }
+    const msgLength = messagesArray.push(
+      new Message(
+        JSONMessage.destination,
+        JSONMessage.text,
+        JSONMessage.timestamp
+      )
+    );
+    console.log("Message Length now: ", msgLength);
 
     return null;
   }
@@ -78,6 +57,46 @@ export class MessageController {
 
   @Get("/returnBatches")
   GetBatchArray() {
+    const sendBatch = {
+      batches: [
+        {
+          destination: "",
+          messages: [
+            {
+              text: "",
+              timestamp: "",
+            },
+          ],
+        },
+      ],
+    };
+    sendBatch.batches.pop();
+    messagesArray.forEach((message) => {
+      let destinationFound = false;
+
+      sendBatch.batches.forEach((batchDestination) => {
+        if (batchDestination.destination === message.destination) {
+          batchDestination.messages.push({
+            text: message.text,
+            timestamp: message.timestamp,
+          });
+          destinationFound = true;
+        }
+      });
+
+      if (!destinationFound) {
+        sendBatch.batches.push({
+          destination: message.destination,
+          messages: [
+            {
+              text: message.text,
+              timestamp: message.timestamp,
+            },
+          ],
+        });
+      }
+    });
+
     return sendBatch;
   }
 
