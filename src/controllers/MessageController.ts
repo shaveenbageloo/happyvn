@@ -103,5 +103,4 @@ export class MessageController {
   getAll() {
     return "This action returns this string!";
   }
-
 }
