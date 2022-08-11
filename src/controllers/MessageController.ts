@@ -2,10 +2,9 @@ import { JsonController, Param, Body, Get, Post } from "routing-controllers";
 import "reflect-metadata";
 import { validate, ValidationError } from "class-validator";
 import { Message } from "../models/message";
+import e from "express";
 
-import MOMENT from "moment";
-
-const batchTimeout = process.env.BATCH_TIMEOUT || 10;
+const batchTimeout = process.env.BATCH_TIMEOUT || 10000;
 
 // const { OpenApiValidator } =
 //   require("express-openapi-validate").OpenApiValidator;
@@ -19,26 +18,76 @@ const messagesArray: Message[] = [];
 
 @JsonController()
 export class MessageController {
+  constructor() {
+    console.log("Constructor Method run");
+    setInterval(() => {
+      console.log("Timer lapsed.");
+      console.log(this.aggregatedMessages());
+    }, Number(batchTimeout));
+  }
+
   @Post("/aggregated-messages")
-  async aggregatedMessages(@Body() aggMsg: any) {
-    return "AggregratedMessages";
+  async aggregatedMessages() {
+    const sendBatch = {
+      batches: [
+        {
+          destination: "",
+          messages: [
+            {
+              text: "",
+              timestamp: "",
+            },
+          ],
+        },
+      ],
+    };
+
+    if (messagesArray.length != 0) {
+      const copyMessagesArray = JSON.parse(
+        JSON.stringify(messagesArray)
+      ) as typeof messagesArray;
+
+      messagesArray.splice(0, messagesArray.length);
+
+      sendBatch.batches.pop();
+      copyMessagesArray.forEach((message) => {
+        let destinationFound = false;
+
+        sendBatch.batches.forEach((batchDestination) => {
+          if (batchDestination.destination === message.destination) {
+            batchDestination.messages.push({
+              text: message.text,
+              timestamp: message.timestamp,
+            });
+            destinationFound = true;
+          }
+        });
+
+        if (!destinationFound) {
+          sendBatch.batches.push({
+            destination: message.destination,
+            messages: [
+              {
+                text: message.text,
+                timestamp: message.timestamp,
+              },
+            ],
+          });
+        }
+      });
+
+      copyMessagesArray.splice(0, copyMessagesArray.length);
+      return JSON.stringify(sendBatch);
+    } else {
+      return null;
+    }
   }
 
   @Post("/message")
-  post(@Body() message: Message) {
+  async post(@Body() message: Message) {
     const JSONMessage = JSON.parse(JSON.stringify(message));
 
-    // const messages = {
-    //   destination: JSONMessage.destination,
-    //   messages: [
-    //     {
-    //       text: JSONMessage.text,
-    //       timeStamp: JSONMessage.timestamp,
-    //     },
-    //   ],
-    // };
-
-    const msgLength = messagesArray.push(
+    const msgLength = await messagesArray.push(
       new Message(
         JSONMessage.destination,
         JSONMessage.text,
@@ -55,52 +104,4 @@ export class MessageController {
     return "This action returns this string!";
   }
 
-  @Get("/returnBatches")
-  GetBatchArray() {
-    const sendBatch = {
-      batches: [
-        {
-          destination: "",
-          messages: [
-            {
-              text: "",
-              timestamp: "",
-            },
-          ],
-        },
-      ],
-    };
-    sendBatch.batches.pop();
-    messagesArray.forEach((message) => {
-      let destinationFound = false;
-
-      sendBatch.batches.forEach((batchDestination) => {
-        if (batchDestination.destination === message.destination) {
-          batchDestination.messages.push({
-            text: message.text,
-            timestamp: message.timestamp,
-          });
-          destinationFound = true;
-        }
-      });
-
-      if (!destinationFound) {
-        sendBatch.batches.push({
-          destination: message.destination,
-          messages: [
-            {
-              text: message.text,
-              timestamp: message.timestamp,
-            },
-          ],
-        });
-      }
-    });
-
-    return sendBatch;
-  }
-
-  CreateBatch() {
-    console.log("Creating batch and sending over to HTTP EndPoint");
-  }
 }
