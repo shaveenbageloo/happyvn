@@ -1,2 +1,0 @@
-# happyvn
-Happy App
