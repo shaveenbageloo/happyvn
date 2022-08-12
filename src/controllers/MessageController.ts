@@ -104,7 +104,7 @@ export class MessageController {
       // NOW CLEAR OUT THE COPIED MESSAGES AS WE HAVE CREATED OUR SENDBATCH
       // JSON TO RETURN
       copyMessagesArray.splice(0, copyMessagesArray.length);
-      return JSON.parse(  JSON.stringify(sendBatch));
+      return JSON.parse(JSON.stringify(sendBatch));
     } else {
       // THIS METHOD IS CALLED EVERY x SECS, IT WILL RETURN A NULL
       // IF THERE AREN'T ANY MESSAGES TO SEND
