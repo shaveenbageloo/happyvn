@@ -1,0 +1,85 @@
+openapi: 3.0.1
+info:
+  title: Hayvn App
+  description: 'This is an app for Hayvn'
+  contact:
+    email: shaveenbageloo@gmail.com
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Hayvn
+  url: https://www.linkedin.com/in/shaveenbageloo/
+servers:
+- url: http://localhost:8082
+paths:
+  /message:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                destination:
+                  type: string
+                  description: The message destination
+                  example: operations-channel
+                text:
+                  type: string
+                  example: An important event has occured
+                timestamp:
+                  type: string
+                  format: date-time
+      responses:
+        200:
+          description: Successful response
+          
+  /aggregated-messages:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                batches:
+                  type: array
+                  items:
+                    properties:
+                      destination:
+                        type: string
+                        example: operations-channel
+                      messages:
+                        type: array
+                        items:
+                          properties:
+                            text:
+                              type: string
+                              example: An important event has occurred
+                            timestamp:
+                              type: string
+                              format: date-time
+      responses:
+        204:
+          description: Successful response
+        400:
+          description: Client errors
+          content:
+            application/json:
+              schema:
+                properties:
+                  errorCode:
+                    type: string
+                    example: DUPLICATE_DESTINATION
+                  message:
+                    type: string
+                    example: Multiple batches contained the same destination
+        500:
+          description: Server errors
+          content:
+            application/json:
+              schema:
+                properties:
+                  errorCode:
+                    type: string
+                    example: FAILED_TO_PROCESS_BATCH
+                  message:
+                    type: string
+                    example:  Failed to process messages for destination:operations-channel
