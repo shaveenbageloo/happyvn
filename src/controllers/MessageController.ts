@@ -2,6 +2,7 @@ import { JsonController, Body, Get, Post } from "routing-controllers";
 import "reflect-metadata";
 import { Message } from "../models/message";
 
+const payloadChecker = require("payload-validator");
 const batchTimeout = process.env.BATCH_TIMEOUT || 10000;
 const messagesArray: Message[] = [];
 
@@ -18,9 +19,26 @@ export class MessageController {
   @Post("/message")
   async post(@Body() message: Message) {
     const JSONMessage = JSON.parse(JSON.stringify(message));
+    const expectedMessage = {
+      destination: "",
+      text: "",
+      timestamp: "",
+    };
 
     return new Promise(async (resolve, reject) => {
       try {
+        // CHECKING IF THE ENTIRE PAYLOAD MESSAGE IS VALID
+        const result = payloadChecker.validator(
+          JSONMessage,
+          expectedMessage,
+          ["destination", "text", "timestamp"],
+          false
+        );
+        if (!result.success) {
+          throw new Error("Invalid Payload: " + result.response.errorMessage);
+        }
+
+        // CHECKING IF TIMESTAMP VALID
         if (!(new Date(JSONMessage.timestamp).getTime() > 0)) {
           throw new Error("Invalid Timestamp");
         }
