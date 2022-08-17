@@ -36,8 +36,8 @@ export class MessageController {
 
         resolve(null);
       } catch (error) {
-        console.log("Error when receiving the message: " + error);
-        reject("Error when receiving the message: " + error);
+        console.log("Invalid message received: " + error);
+        reject("Invalid message received: " + error);
       }
     });
   }
